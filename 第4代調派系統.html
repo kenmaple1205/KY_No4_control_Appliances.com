@@ -1187,8 +1187,8 @@ function manualSave() {
     }
 
     function ambulanceInfoClass(groupKey) {
-        if (['PAmbm', 'SAmbm'].includes(groupKey)) return 'info-green';
-        if (groupKey === 'Ambm') return 'info-pink';
+        if (['PAmbm', 'SAmbm'].includes(groupKey)) return 'info-blue';
+        if (groupKey === 'Ambm') return 'info-blue';
         if (groupKey === 'Supt' && !groupKey.startsWith('S/')) return 'info-blue';
         return 'info-blue';
     }
