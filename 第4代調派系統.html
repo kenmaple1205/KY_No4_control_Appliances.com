@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>消防與救護車輛編制與人員管理系統</title>
+    <style>
+        :root {
+            --bg: #f5f7fa;
+            --card: #fff;
+            --text: #333;
+            --muted: #6b7280;
+            --border: #cfd4dc;
+            --fire: #c00000;
+            --fire-light: #fce4d6;
+            --amb: #003366;
+            --amb-light: #cfdff7;
+            --struct: #383d41;
+            --struct-light: #e2e3e5;
+            --success: #198754;
+            --warn: #ffc107;
+            --danger: #dc3545;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            background-color: var(--bg);
+            margin: 20px;
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        .system-container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            background-color: var(--card);
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin-bottom: 18px;
+        }
+
+        .system-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #1e3d59;
+        }
+
+        .sync-status {
+            margin-top: 6px;
+            color: var(--success);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .date-picker-table {
+            border-collapse: collapse;
+            background-color: #fff;
+            white-space: nowrap;
+        }
+
+        .date-picker-table td {
+            border: 1px solid #ccc;
+            padding: 6px 12px;
+        }
+
+        .date-label {
+            background-color: #f2f2f2;
+            font-weight: 700;
+        }
+
+        .date-input {
+            border: none;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn, .tool-btn {
+            border: none;
+            cursor: pointer;
+            transition: 0.2s ease;
+            font-family: inherit;
+        }
+
+        .tab-btn {
+            padding: 10px 24px;
+            font-size: 16px;
+            font-weight: 800;
+            border-radius: 8px 8px 0 0;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn.fire-tab { background-color: var(--fire-light); color: var(--fire); }
+        .tab-btn.fire-tab.active { background-color: var(--fire); color: #fff; }
+        .tab-btn.amb-tab { background-color: var(--amb-light); color: #1e3d59; }
+        .tab-btn.amb-tab.active { background-color: var(--amb); color: #fff; }
+        .tab-btn.struct-tab { background-color: var(--struct-light); color: var(--struct); }
+        .tab-btn.struct-tab.active { background-color: var(--struct); color: #fff; }
+
+        .tab-content { display: none; }
+        .tab-content.active {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .left-panel { flex: 2; min-width: 0; }
+        .right-panel { flex: 1; min-width: 350px; }
+
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--card);
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        table.data-table th, table.data-table td {
+            padding: 8px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .sub-header {
+            background-color: #f2f2f2;
+            font-weight: 800;
+        }
+
+        .fire-panel table.data-table th, .fire-panel table.data-table td { border: 1px solid #a0a0a0; }
+        .fire-main-header {
+            background-color: var(--fire-light);
+            color: var(--fire);
+            font-weight: 900;
+            font-size: 16px;
+        }
+        .fire-right-header {
+            background-color: var(--fire);
+            color: #fff;
+            font-weight: 900;
+            font-size: 16px;
+        }
+        .fire-total-bg { background-color: var(--fire-light); font-weight: 900; }
+        .fire-spacer-row { background-color: var(--fire-light); height: 15px; }
+
+        .amb-panel table.data-table th, .amb-panel table.data-table td { border: 1px solid #a6b9d0; }
+        .amb-main-header {
+            background-color: var(--amb-light);
+            color: #1e3d59;
+            font-weight: 900;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+        .amb-right-header {
+            background-color: var(--amb);
+            color: #fff;
+            font-weight: 900;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+        .amb-total-bg { background-color: #8faadc; color: #000; font-weight: 900; }
+        .amb-spacer-row { background-color: var(--amb-light); height: 16px; }
+
+        select, input[type="text"], input[type="number"], input[type="date"], textarea {
+            width: 95%;
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 13px;
+            background-color: #fff;
+        }
+
+        select { cursor: pointer; }
+        select:focus, input:focus, textarea:focus {
+            border-color: #8faadc;
+            outline: none;
+            box-shadow: 0 0 4px rgba(143,170,220,0.5);
+        }
+
+        input[readonly] {
+            background-color: #f8fafc;
+            font-weight: 800;
+            text-align: right;
+        }
+
+        textarea {
+            width: 98%;
+            height: 85px;
+            resize: vertical;
+        }
+
+        select.duplicate-duty {
+            border-color: var(--warn);
+            background-color: #fff8db;
+        }
+
+        select.leave-duty-conflict {
+            border-color: var(--danger);
+            background-color: #fff0f0;
+        }
+
+        .hint-text {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.5;
+            text-align: left;
+        }
+
+        .struct-panel {
+            background-color: var(--card);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            width: 100%;
+        }
+
+        .struct-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 900;
+            margin-bottom: 10px;
+            color: #333;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .struct-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: space-between;
+            align-items: center;
+            margin: 14px 0;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #f8fafc;
+        }
+
+        .toolbar-left, .toolbar-right {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .tool-btn {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 800;
+            background: #e9ecef;
+            color: #222;
+        }
+
+        .tool-btn.primary { background: var(--struct); color: #fff; }
+        .tool-btn.success { background: var(--success); color: #fff; }
+        .tool-btn.danger { background: var(--danger); color: #fff; }
+        .tool-btn:hover { filter: brightness(0.95); transform: translateY(-1px); }
+
+        .editor-wrap {
+            overflow-x: auto;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .staff-editor {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 980px;
+            background: #fff;
+        }
+
+        .staff-editor th, .staff-editor td {
+            border: 1px solid #dde2ea;
+            padding: 7px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .staff-editor th {
+            background: #eef2f7;
+            font-weight: 900;
+        }
+
+        .staff-editor input, .staff-editor select {
+            width: 100%;
+        }
+
+        .staff-editor .small-col { width: 72px; }
+        .staff-editor .medium-col { width: 120px; }
+        .staff-editor .wide-col { width: 160px; }
+
+        .struct-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .struct-table td {
+            border: 1px solid #ccc;
+            padding: 10px 5px;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .rank-col {
+            font-weight: 900;
+            font-size: 16px;
+            width: 82px;
+            background-color: #fff;
+        }
+
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(110px, 1fr));
+            gap: 15px;
+            justify-items: center;
+            align-items: center;
+        }
+
+        .member-card {
+            width: 140px;
+            border: 1px solid #b4c6e7;
+            border-radius: 5px;
+            overflow: hidden;
+            background-color: #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+        }
+
+        .avatar-box {
+            height: 128px;
+            background-color: #f2f2f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .bg-red { background-color: #c00000; }
+        .bg-yellow { background-color: #fff2cc; }
+        .bg-blue { background-color: #cfdff7; }
+        .bg-gray { background-color: #eaeaea; }
+        .bg-pink { background-color: #e99598; }
+        .bg-nil { background-color: #eaeaea; color: #7f7f7f; font-weight: 900; font-size: 16px; }
+
+        .avatar-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 12px;
+        }
+
+        .avatar-placeholder::before {
+            content: "";
+            width: 40px;
+            height: 40px;
+            background-color: currentColor;
+            border-radius: 50%;
+            margin-bottom: 5px;
+            opacity: 0.92;
+        }
+
+        .avatar-placeholder::after {
+            content: "";
+            width: 70px;
+            height: 35px;
+            background-color: currentColor;
+            border-radius: 35px 35px 0 0;
+            opacity: 0.92;
+        }
+
+        .avatar-box.bg-yellow .avatar-placeholder,
+        .avatar-box.bg-blue .avatar-placeholder,
+        .avatar-box.bg-gray .avatar-placeholder { color: #475569; }
+
+        .card-info {
+            font-size: 11px;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        .info-rank {
+            background-color: #ffe599;
+            padding: 2px 0;
+            font-weight: 900;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .info-name-ch { padding-top: 3px; font-weight: 900; }
+        .info-name-en { padding-bottom: 3px; color: #595959; }
+
+        .empty-card {
+            opacity: 0.72;
+            box-shadow: none;
+            border-style: dashed;
+        }
+
+        .mini-badge {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 999px;
+            background: #eef2ff;
+            color: #1e3d59;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        .screen-note {
+            background: #fff8db;
+            border: 1px solid #f5d76e;
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #5f4800;
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+
+
+        .struct-subtitle {
+            margin: 28px 0 12px;
+            padding: 10px 14px;
+            border-left: 6px solid var(--amb);
+            background: #f8fafc;
+            font-size: 18px;
+            font-weight: 900;
+            color: #1e3d59;
+        }
+
+        .amb-card-grid {
+            display: grid;
+            gap: 15px;
+            justify-items: center;
+            align-items: start;
+        }
+
+        .amb-card-grid.cols-1 {
+            grid-template-columns: repeat(1, minmax(110px, 140px));
+            justify-content: center;
+        }
+
+        .amb-card-grid.cols-2 {
+            grid-template-columns: repeat(2, minmax(110px, 140px));
+            justify-content: center;
+        }
+
+        .amb-card-grid.cols-5 {
+            grid-template-columns: repeat(5, minmax(110px, 140px));
+        }
+
+        .amb-card-grid.cols-8 {
+            grid-template-columns: repeat(8, minmax(96px, 1fr));
+        }
+
+        .amb-card-grid .member-card {
+            width: 100%;
+            max-width: 140px;
+        }
+
+        .member-card .info-rank.info-blue { background-color: #cfe2f3; }
+        .member-card .info-rank.info-green { background-color: #d9ead3; }
+        .member-card .info-rank.info-pink { background-color: #e99598; }
+        .member-card .info-rank.info-gray { background-color: #eaeaea; }
+        @media (max-width: 1050px) {
+            body { margin: 12px; }
+            .top-bar, .tab-content.active { flex-direction: column; align-items: stretch; }
+            .right-panel { min-width: 100%; }
+            .card-container, .amb-card-grid.cols-5, .amb-card-grid.cols-8, .amb-card-grid.cols-2 { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+            .amb-card-grid.cols-1 { grid-template-columns: repeat(1, minmax(120px, 140px)); justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+<div class="system-container">
+    <div class="top-bar">
+        <div>
+            <div class="system-title">港府消防及救護人員編制管理系統</div>
+            <div class="sync-status" id="sync-status">架構表已連接：消防與救護編制表會同步使用同一份人員資料。</div>
+        </div>
+        <table class="date-picker-table">
+            <tr>
+                <td class="date-label">當天日期</td>
+                <td><input type="date" class="date-input" id="system-date" value="2026-07-02"></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="tab-buttons">
+        <button class="tab-btn fire-tab active" onclick="switchTab('fire')">🚒 消防車輛編制</button>
+        <button class="tab-btn amb-tab" onclick="switchTab('amb')">🚑 救護車輛編制</button>
+        <button class="tab-btn struct-tab" onclick="switchTab('struct')">📊 人員架構表</button>
+    </div>
+
+    <div id="fire-panel" class="tab-content fire-panel active"></div>
+    <div id="amb-panel" class="tab-content amb-panel"></div>
+
+    <div id="struct-panel" class="tab-content">
+        <div class="struct-panel">
+            <div class="struct-title">人員架構表 / Personnel Structure</div>
+            <div class="screen-note">
+                在下方「架構資料表」修改人員職級、姓名、分類或適用編制後，消防與救護兩個編制表的下拉選單會即時同步更新。<br>
+                分類會影響可選位置：官員 → 指揮官/主任；隊目/總隊目 → 總隊目/隊目；司機/隊員 → 司機與隊員欄位。
+            </div>
+
+            <div class="struct-toolbar">
+                <div class="toolbar-left">
+                    <button class="tool-btn success" onclick="addStaffMember()">＋ 新增消防人員</button>
+                    <button class="tool-btn success" onclick="addAmbStaffMember()">＋ 新增救護人員</button>
+                    <button class="tool-btn primary" onclick="syncFromStructure()">套用架構表到兩個編制表</button>
+                    <button class="tool-btn" onclick="switchTab('fire')">查看消防編制</button>
+                    <button class="tool-btn" onclick="switchTab('amb')">查看救護編制</button>
+                </div>
+                <div class="toolbar-right">
+                    <button class="tool-btn" onclick="exportData()">匯出 JSON</button>
+                    <button class="tool-btn" onclick="triggerImport()">匯入 JSON</button>
+                    <button class="tool-btn danger" onclick="resetAllData()">重設範例資料</button>
+                    <input type="file" id="import-file" accept="application/json" style="display:none" onchange="importData(event)">
+                </div>
+            </div>
+
+            <div class="editor-wrap">
+                <table class="staff-editor">
+                    <thead>
+                        <tr>
+                            <th class="small-col">顯示</th>
+                            <th class="medium-col">架構列</th>
+                            <th class="medium-col">職級/編號</th>
+                            <th class="wide-col">中文名</th>
+                            <th class="wide-col">英文名</th>
+                            <th class="medium-col">分類</th>
+                            <th class="medium-col">適用編制</th>
+                            <th class="small-col">相片底色</th>
+                            <th class="small-col">排序</th>
+                            <th class="small-col">刪除</th>
+                        </tr>
+                    </thead>
+                    <tbody id="staff-editor-body"></tbody>
+                </table>
+            </div>
+
+            <div class="struct-subtitle">消防／綜合人員架構圖</div>
+            <table class="struct-table" id="structure-chart"></table>
+
+            <div class="struct-subtitle">救護人員綜合架構圖</div>
+            <div class="screen-note">
+                救護架構圖已改為與上方消防／綜合架構圖相同的卡片式版面；同樣由上方「架構資料表」控制姓名、職級、排序與是否顯示。
+            </div>
+            <table class="struct-table" id="ambulance-structure-chart"></table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const STORAGE_KEY = 'fds_roster_management_v3';
+
+    const DEFAULT_STAFF = [
+        { id: 'do-001', active: true, group: 'DO', rank: 'DO', nameCh: '陳啟泰', nameEn: 'CHAN Kai-tai', category: 'officer', service: 'fire', color: 'red', sort: 10 },
+        { id: 'ado-001', active: true, group: 'ADO', rank: 'Ag ADO', nameCh: '蔡浩揚', nameEn: 'CHOI Ho-yeung', category: 'officer', service: 'fire', color: 'red', sort: 20 },
+        { id: 'sstno-001', active: true, group: 'S/StnO', rank: 'SStnO', nameCh: '劉嘉熙', nameEn: 'LAU Ka-hei', category: 'officer', service: 'fire', color: 'red', sort: 30 },
+        { id: 'sstno-002', active: true, group: 'S/StnO', rank: 'SStnO', nameCh: '林涼水', nameEn: 'LAM Leung-shui', category: 'officer', service: 'fire', color: 'red', sort: 31 },
+        { id: 'sfn-001', active: true, group: 'SFn', rank: 'SFn26011', nameCh: '蔡有為', nameEn: 'CHOI Yau-wai', category: 'nco', service: 'fire', color: 'yellow', sort: 50 },
+        { id: 'fn-001', active: true, group: 'Fn', rank: 'Fn26009', nameCh: '李偉俊', nameEn: 'LEE Wai-chun', category: 'other', service: 'fire', color: 'yellow', sort: 60 },
+        { id: 'fn-002', active: true, group: 'Fn', rank: 'Fn26010', nameCh: '鄺俊明', nameEn: 'KWONG Chun-ming', category: 'other', service: 'fire', color: 'yellow', sort: 61 },
+        { id: 'fn-003', active: true, group: 'Fn', rank: 'Fn26013', nameCh: '王傑', nameEn: 'WONG Kit', category: 'other', service: 'fire', color: 'yellow', sort: 62 },
+        { id: 'fn-004', active: true, group: 'Fn', rank: 'Fn26019', nameCh: '卓家傑', nameEn: 'CHEUK Ka-kit', category: 'other', service: 'fire', color: 'yellow', sort: 63 },
+        { id: 'fn-005', active: true, group: 'Fn', rank: 'RFn26020', nameCh: '潘止水', nameEn: 'PUN Chi-shui', category: 'other', service: 'fire', color: 'yellow', sort: 64 },
+
+        { id: 'amb-acao-001', active: true, group: 'ACAO', rank: 'ACAO', nameCh: 'Name Chinese', nameEn: 'Name English', category: 'officer', service: 'amb', color: 'blue', sort: 1010 },
+        { id: 'amb-sao-001', active: true, group: 'S/AO', rank: 'SAO', nameCh: '張子豪', nameEn: 'CHEUNG Chi-ho', category: 'officer', service: 'amb', color: 'blue', sort: 1030 },
+        { id: 'amb-ao-001', active: true, group: 'S/AO', rank: 'AO', nameCh: '李家軒', nameEn: 'LI Ka-hin', category: 'officer', service: 'amb', color: 'red', sort: 1031 },
+        { id: 'amb-pambm-001', active: true, group: 'PAmbm', rank: 'PAmbm15885', nameCh: '周夢麟', nameEn: 'CHOW Mang-lun', category: 'nco', service: 'amb', color: 'gray', sort: 1040 },
+        { id: 'amb-sambm-001', active: true, group: 'SAmbm', rank: 'SAmbm15885', nameCh: '程天', nameEn: 'CHING Tin', category: 'nco', service: 'amb', color: 'gray', sort: 1050 },
+        { id: 'amb-ambm-001', active: true, group: 'Ambm', rank: 'Ambm26003', nameCh: '郭嘉泳', nameEn: 'KWOK Ka-wing', category: 'other', service: 'amb', color: 'pink', sort: 1060 },
+        { id: 'amb-ambm-002', active: true, group: 'Ambm', rank: 'Ambm26008', nameCh: '王名', nameEn: 'WONG Ming', category: 'other', service: 'amb', color: 'pink', sort: 1061 },
+        { id: 'amb-ambm-003', active: true, group: 'Ambm', rank: 'Ambm26016', nameCh: '周楓章', nameEn: 'CHOU Feng-chang', category: 'other', service: 'amb', color: 'pink', sort: 1062 },
+        { id: 'amb-ambm-004', active: true, group: 'Ambm', rank: 'Ambm26018', nameCh: '薛迪', nameEn: 'Name English', category: 'other', service: 'amb', color: 'pink', sort: 1063 }
+    ];
+
+    const FIRE_GROUPS = [
+        { key: 'DO', minSlots: 1 },
+        { key: 'ADO', minSlots: 1 },
+        { key: 'S/StnO', minSlots: 2 },
+        { key: 'PFn', minSlots: 5 },
+        { key: 'SFn', minSlots: 6 },
+        { key: 'Fn', minSlots: 6 }
+    ];
+
+    const AMB_GROUPS = [
+        { key: 'ACAO', minSlots: 1, layout: 'center-one', rowClass: 'amb-org-row-short' },
+        { key: 'Supt', minSlots: 1, layout: 'center-one', rowClass: 'amb-org-row-short' },
+        { key: 'S/AO', minSlots: 2, layout: 'center-two', rowClass: 'amb-org-row-medium' },
+        { key: 'PAmbm', minSlots: 5, layout: 'five-wide', rowClass: 'amb-org-row-tall' },
+        { key: 'SAmbm', minSlots: 5, layout: 'five-wide', rowClass: 'amb-org-row-tall' },
+        { key: 'Ambm', minSlots: 8, layout: 'eight-wide', rowClass: 'amb-org-row-short' }
+    ];
+
+    const GROUPS = [...FIRE_GROUPS, ...AMB_GROUPS];
+
+    const CATEGORY_LABELS = {
+        officer: '官員 / Officer',
+        nco: '隊目/總隊目 / NCO',
+        driver: '司機 / Driver',
+        other: '隊員 / Member'
+    };
+
+    const SERVICE_LABELS = {
+        both: '消防＋救護',
+        fire: '只限消防',
+        amb: '只限救護'
+    };
+
+    const COLOR_LABELS = {
+        red: '紅',
+        yellow: '黃',
+        blue: '藍',
+        gray: '灰',
+        pink: '粉紅'
+    };
+
+    const PANEL_CONFIG = {
+        fire: {
+            emoji: '🚒',
+            mainHeader: '消防車輛編制 (Fire Appliances)',
+            mainHeaderClass: 'fire-main-header',
+            rightHeaderClass: 'fire-right-header',
+            totalClass: 'fire-total-bg',
+            spacerClass: 'fire-spacer-row',
+            commanderLabel: '當值指揮官',
+            officerCol: '消防隊長',
+            vehicles: ['MP', 'HP', 'LRU', 'TL', 'COM CAR', 'NIL']
+        },
+        amb: {
+            emoji: '🚑',
+            mainHeader: '救護車輛編制 Ambulances & Resources',
+            mainHeaderClass: 'amb-main-header',
+            rightHeaderClass: 'amb-right-header',
+            totalClass: 'amb-total-bg',
+            spacerClass: 'amb-spacer-row',
+            commanderLabel: '當值指揮官',
+            officerCol: '救護主任',
+            vehicles: ['A223', 'RRV', 'MCTC', 'NIL', 'NIL']
+        }
+    };
+
+    let appState = loadState();
+
+    function loadState() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            if (saved && Array.isArray(saved.staff)) {
+                return {
+                    staff: saved.staff,
+                    rosters: saved.rosters || { fire: {}, amb: {} },
+                    date: saved.date || '2026-07-02'
+                };
+            }
+        } catch (error) {
+            console.warn('Cannot read saved state:', error);
+        }
+        return {
+            staff: structuredClone(DEFAULT_STAFF),
+            rosters: { fire: {}, amb: {} },
+            date: '2026-07-02'
+        };
+    }
+
+    function saveState() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+        setSyncStatus('已儲存並同步到消防／救護編制表。');
+    }
+
+    function setSyncStatus(message) {
+        const el = document.getElementById('sync-status');
+        if (!el) return;
+        el.textContent = message;
+        clearTimeout(setSyncStatus.timer);
+        setSyncStatus.timer = setTimeout(() => {
+            el.textContent = '架構表已連接：消防與救護編制表會同步使用同一份人員資料。';
+        }, 2600);
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#039;');
+    }
+
+    function switchTab(type) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        if (type === 'fire') {
+            document.querySelector('.tab-btn.fire-tab').classList.add('active');
+            document.getElementById('fire-panel').classList.add('active');
+        } else if (type === 'amb') {
+            document.querySelector('.tab-btn.amb-tab').classList.add('active');
+            document.getElementById('amb-panel').classList.add('active');
+        } else {
+            document.querySelector('.tab-btn.struct-tab').classList.add('active');
+            document.getElementById('struct-panel').classList.add('active');
+        }
+    }
+
+    function personSelect(type, key, filter, countArea, placeholder = '-') {
+        return `<select data-person-select="1" data-roster-type="${type}" data-state-key="${key}" data-filter="${filter}" data-count-area="${countArea}" onchange="handleRosterChange(this)"></select>`;
+    }
+
+    function statusSelect(type, key) {
+        const value = getRosterValue(type, key) || 'standby';
+        return `<select data-roster-type="${type}" data-state-key="${key}" onchange="handleRosterChange(this)">
+            <option value="standby" ${value === 'standby' ? 'selected' : ''}>在運作</option>
+            <option value="maintenance" ${value === 'maintenance' ? 'selected' : ''}>維修中</option>
+            <option value="reserve" ${value === 'reserve' ? 'selected' : ''}>後備</option>
+            <option value="nil" ${value === 'nil' ? 'selected' : ''}>NIL</option>
+        </select>`;
+    }
+
+    function textInput(type, key, placeholder = '') {
+        const value = escapeHtml(getRosterValue(type, key));
+        return `<input type="text" value="${value}" placeholder="${escapeHtml(placeholder)}" data-roster-type="${type}" data-state-key="${key}" oninput="handleRosterChange(this)">`;
+    }
+
+    function textareaInput(type, key, placeholder = '') {
+        const value = escapeHtml(getRosterValue(type, key));
+        return `<textarea placeholder="${escapeHtml(placeholder)}" data-roster-type="${type}" data-state-key="${key}" oninput="handleRosterChange(this)">${value}</textarea>`;
+    }
+
+    function getRosterValue(type, key) {
+        return (appState.rosters[type] && appState.rosters[type][key]) || '';
+    }
+
+    function renderRosterPanel(type) {
+        const cfg = PANEL_CONFIG[type];
+        const panel = document.getElementById(`${type}-panel`);
+        const vehicleRows = cfg.vehicles.map((vehicle, index) => {
+            const rowKey = `${index}-${vehicle.replaceAll(' ', '_')}`;
+            return `
+                <tr>
+                    <td class="sub-header">${escapeHtml(vehicle)}</td>
+                    <td>${personSelect(type, `${rowKey}-officer`, 'officer', 'duty')}</td>
+                    <td>${personSelect(type, `${rowKey}-nco`, 'nco', 'duty')}</td>
+                    <td>${personSelect(type, `${rowKey}-driver`, 'driver', 'duty')}</td>
+                    <td>${personSelect(type, `${rowKey}-crew1`, 'crew', 'duty')}</td>
+                    <td>${personSelect(type, `${rowKey}-crew2`, 'crew', 'duty')}</td>
+                    <td>${statusSelect(type, `${rowKey}-status`)}</td>
+                </tr>`;
+        }).join('');
+
+        panel.innerHTML = `
+            <div class="left-panel">
+                <table class="data-table">
+                    <tr><td colspan="7" class="${cfg.mainHeaderClass}">${cfg.emoji} ${cfg.mainHeader}</td></tr>
+                    <tr>
+                        <td class="sub-header" style="width: 15%;">${cfg.commanderLabel}</td>
+                        <td colspan="6">${personSelect(type, 'commander', 'officer', 'duty', '-- 請選擇指揮官 --')}</td>
+                    </tr>
+                    <tr class="sub-header">
+                        <td style="width: 12%;">車輛</td>
+                        <td style="width: 14%;">${cfg.officerCol}</td>
+                        <td style="width: 14%;">總隊目/隊目</td>
+                        <td style="width: 12%;">司機</td>
+                        <td colspan="2" style="width: 36%;">隊員</td>
+                        <td style="width: 12%;">狀態</td>
+                    </tr>
+                    ${vehicleRows}
+                    <tr class="${cfg.spacerClass}"><td colspan="7"></td></tr>
+                    <tr>
+                        <td class="sub-header">當值隊目</td>
+                        <td colspan="6">${personSelect(type, 'duty-nco-extra', 'nco', 'duty', '-- 請選擇 --')}</td>
+                    </tr>
+                    <tr>
+                        <td class="sub-header">當值隊員</td>
+                        <td colspan="6">${personSelect(type, 'duty-member-extra', 'crew', 'duty', '-- 請選擇 --')}</td>
+                    </tr>
+                    <tr class="${cfg.spacerClass}"><td colspan="7"></td></tr>
+                    <tr>
+                        <td class="sub-header">休假人員</td>
+                        <td>${personSelect(type, 'leave-1', 'all', 'leave')}</td>
+                        <td>${personSelect(type, 'leave-2', 'all', 'leave')}</td>
+                        <td>${personSelect(type, 'leave-3', 'all', 'leave')}</td>
+                        <td>${personSelect(type, 'leave-4', 'all', 'leave')}</td>
+                        <td>${personSelect(type, 'leave-5', 'all', 'leave')}</td>
+                        <td>${personSelect(type, 'leave-6', 'all', 'leave')}</td>
+                    </tr>
+                    <tr>
+                        <td class="sub-header">Leave</td>
+                        <td>${personSelect(type, 'leave-7', 'all', 'leave')}</td>
+                        <td>${personSelect(type, 'leave-8', 'all', 'leave')}</td>
+                        <td>${personSelect(type, 'leave-9', 'all', 'leave')}</td>
+                        <td>${personSelect(type, 'leave-10', 'all', 'leave')}</td>
+                        <td>${personSelect(type, 'leave-11', 'all', 'leave')}</td>
+                        <td>${personSelect(type, 'leave-12', 'all', 'leave')}</td>
+                    </tr>
+                    <tr>
+                        <td class="sub-header">Remark</td>
+                        <td colspan="6">${textInput(type, 'remark', '請輸入備註資料...')}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="right-panel">
+                <table class="data-table">
+                    <tr><td colspan="3" class="${cfg.rightHeaderClass}">其他資訊 OTHER INFORMATION</td></tr>
+                    <tr>
+                        <td rowspan="3" class="sub-header" style="width: 35%;">定檢車輛<br><small>Scheduled Inspection</small></td>
+                        <td colspan="2">${textInput(type, 'inspection-1', '-')}</td>
+                    </tr>
+                    <tr><td colspan="2">${textInput(type, 'inspection-2', '-')}</td></tr>
+                    <tr><td colspan="2">${textInput(type, 'inspection-3', '-')}</td></tr>
+                    <tr>
+                        <td rowspan="2" class="sub-header">維修工具<br><small>Maintenance Tools</small></td>
+                        <td colspan="2">${textInput(type, 'tools-1', '-')}</td>
+                    </tr>
+                    <tr><td colspan="2">${textInput(type, 'tools-2', '-')}</td></tr>
+                    <tr>
+                        <td rowspan="3" class="sub-header">當值人數<br><small>No. of Duty Personnel</small></td>
+                        <td style="width: 35%;">Officer</td>
+                        <td><input type="number" id="${type}-duty-officer" value="0" readonly></td>
+                    </tr>
+                    <tr><td>Other Rank</td><td><input type="number" id="${type}-duty-other" value="0" readonly></td></tr>
+                    <tr><td class="${cfg.totalClass}">當值總人數</td><td class="${cfg.totalClass}" id="${type}-duty-total" style="text-align:right; padding-right:15px;">0</td></tr>
+                    <tr>
+                        <td rowspan="3" class="sub-header">休假人數<br><small>No. of Leave</small></td>
+                        <td>Officer</td>
+                        <td><input type="number" id="${type}-leave-officer" value="0" readonly></td>
+                    </tr>
+                    <tr><td>Other Rank</td><td><input type="number" id="${type}-leave-other" value="0" readonly></td></tr>
+                    <tr><td class="${cfg.totalClass}">休假總人數</td><td class="${cfg.totalClass}" id="${type}-leave-total" style="text-align:right; padding-right:15px;">0</td></tr>
+                    <tr><td colspan="3" class="sub-header" style="text-align:center; font-weight:900;">額外訊息 Extra Info</td></tr>
+                    <tr><td colspan="3">${textareaInput(type, 'extra-info', '在此處鍵入額外訊息...')}</td></tr>
+                    <tr>
+                        <td colspan="3" class="hint-text">
+                            提示：人數統計由本頁已選取的人員自動計算；同一人被重複選取會以黃色標示，休假人員又被派更會以紅色標示。
+                        </td>
+                    </tr>
+                </table>
+            </div>`;
+    }
+
+    function handleRosterChange(el) {
+        const type = el.dataset.rosterType;
+        const key = el.dataset.stateKey;
+        if (!appState.rosters[type]) appState.rosters[type] = {};
+        appState.rosters[type][key] = el.value;
+        saveState();
+        updateRosterTotals(type);
+    }
+
+    function staffDisplayName(person) {
+        return `${person.rank}｜${person.nameCh || '未命名'}｜${person.nameEn || ''}`.trim();
+    }
+
+    function sortStaff(list) {
+        return [...list].sort((a, b) => Number(a.sort || 0) - Number(b.sort || 0) || String(a.rank).localeCompare(String(b.rank), 'zh-Hant'));
+    }
+
+    function staffMatches(person, type, filter) {
+        if (!person.active) return false;
+        if (!(person.service === 'both' || person.service === type)) return false;
+
+        switch (filter) {
+            case 'officer': return person.category === 'officer';
+            case 'nco': return person.category === 'nco';
+            case 'driver': return ['driver', 'nco', 'other'].includes(person.category);
+            case 'crew': return ['other', 'driver', 'nco'].includes(person.category);
+            case 'all': return true;
+            default: return true;
+        }
+    }
+
+    function populatePersonSelect(select) {
+        const type = select.dataset.rosterType;
+        const filter = select.dataset.filter;
+        const key = select.dataset.stateKey;
+        const currentValue = getRosterValue(type, key);
+        const available = sortStaff(appState.staff.filter(person => staffMatches(person, type, filter)));
+
+        select.innerHTML = '<option value="">-</option>';
+        available.forEach(person => {
+            const option = document.createElement('option');
+            option.value = person.id;
+            option.textContent = staffDisplayName(person);
+            if (person.id === currentValue) option.selected = true;
+            select.appendChild(option);
+        });
+
+        if (currentValue && !available.some(person => person.id === currentValue)) {
+            const missing = appState.staff.find(person => person.id === currentValue);
+            const option = document.createElement('option');
+            option.value = currentValue;
+            option.textContent = missing ? `⚠ 不符合此欄分類：${staffDisplayName(missing)}` : '⚠ 已移除的人員';
+            option.selected = true;
+            option.disabled = true;
+            select.appendChild(option);
+        }
+    }
+
+    function refreshAllPersonSelects() {
+        document.querySelectorAll('select[data-person-select="1"]').forEach(populatePersonSelect);
+        updateRosterTotals('fire');
+        updateRosterTotals('amb');
+    }
+
+    function uniqueSelectedPeople(type, countArea) {
+        const ids = new Set();
+        document.querySelectorAll(`#${type}-panel select[data-person-select="1"][data-count-area="${countArea}"]`).forEach(select => {
+            if (select.value) ids.add(select.value);
+        });
+        return [...ids].map(id => appState.staff.find(person => person.id === id)).filter(Boolean);
+    }
+
+    function updateRosterTotals(type) {
+        const dutyPeople = uniqueSelectedPeople(type, 'duty');
+        const leavePeople = uniqueSelectedPeople(type, 'leave');
+        const dutyOfficer = dutyPeople.filter(person => person.category === 'officer').length;
+        const dutyOther = dutyPeople.length - dutyOfficer;
+        const leaveOfficer = leavePeople.filter(person => person.category === 'officer').length;
+        const leaveOther = leavePeople.length - leaveOfficer;
+
+        document.getElementById(`${type}-duty-officer`).value = dutyOfficer;
+        document.getElementById(`${type}-duty-other`).value = dutyOther;
+        document.getElementById(`${type}-duty-total`).textContent = dutyPeople.length;
+        document.getElementById(`${type}-leave-officer`).value = leaveOfficer;
+        document.getElementById(`${type}-leave-other`).value = leaveOther;
+        document.getElementById(`${type}-leave-total`).textContent = leavePeople.length;
+
+        markSelectionConflicts(type);
+    }
+
+    function markSelectionConflicts(type) {
+        const dutyCounts = {};
+        const dutyIds = new Set();
+        const leaveIds = new Set();
+        const selects = document.querySelectorAll(`#${type}-panel select[data-person-select="1"]`);
+
+        selects.forEach(select => {
+            select.classList.remove('duplicate-duty', 'leave-duty-conflict');
+            if (!select.value) return;
+            if (select.dataset.countArea === 'duty') {
+                dutyCounts[select.value] = (dutyCounts[select.value] || 0) + 1;
+                dutyIds.add(select.value);
+            }
+            if (select.dataset.countArea === 'leave') {
+                leaveIds.add(select.value);
+            }
+        });
+
+        selects.forEach(select => {
+            if (!select.value) return;
+            if (select.dataset.countArea === 'duty' && dutyCounts[select.value] > 1) {
+                select.classList.add('duplicate-duty');
+            }
+            if (select.dataset.countArea === 'leave' && dutyIds.has(select.value)) {
+                select.classList.add('leave-duty-conflict');
+            }
+            if (select.dataset.countArea === 'duty' && leaveIds.has(select.value)) {
+                select.classList.add('leave-duty-conflict');
+            }
+        });
+    }
+
+    function renderStaffEditor() {
+        const body = document.getElementById('staff-editor-body');
+        body.innerHTML = sortStaff(appState.staff).map(person => `
+            <tr data-staff-id="${person.id}">
+                <td><input type="checkbox" ${person.active ? 'checked' : ''} onchange="updateStaffField('${person.id}', 'active', this.checked)"></td>
+                <td>
+                    <select onchange="updateStaffField('${person.id}', 'group', this.value)">
+                        ${GROUPS.map(group => `<option value="${group.key}" ${person.group === group.key ? 'selected' : ''}>${group.key}</option>`).join('')}
+                    </select>
+                </td>
+                <td><input type="text" value="${escapeHtml(person.rank)}" onchange="updateStaffField('${person.id}', 'rank', this.value)"></td>
+                <td><input type="text" value="${escapeHtml(person.nameCh)}" onchange="updateStaffField('${person.id}', 'nameCh', this.value)"></td>
+                <td><input type="text" value="${escapeHtml(person.nameEn)}" onchange="updateStaffField('${person.id}', 'nameEn', this.value)"></td>
+                <td>
+                    <select onchange="updateStaffField('${person.id}', 'category', this.value)">
+                        ${Object.entries(CATEGORY_LABELS).map(([value, label]) => `<option value="${value}" ${person.category === value ? 'selected' : ''}>${label}</option>`).join('')}
+                    </select>
+                </td>
+                <td>
+                    <select onchange="updateStaffField('${person.id}', 'service', this.value)">
+                        ${Object.entries(SERVICE_LABELS).map(([value, label]) => `<option value="${value}" ${person.service === value ? 'selected' : ''}>${label}</option>`).join('')}
+                    </select>
+                </td>
+                <td>
+                    <select onchange="updateStaffField('${person.id}', 'color', this.value)">
+                        ${Object.entries(COLOR_LABELS).map(([value, label]) => `<option value="${value}" ${person.color === value ? 'selected' : ''}>${label}</option>`).join('')}
+                    </select>
+                </td>
+                <td><input type="number" value="${Number(person.sort || 0)}" onchange="updateStaffField('${person.id}', 'sort', Number(this.value || 0))"></td>
+                <td><button class="tool-btn danger" onclick="deleteStaffMember('${person.id}')">刪除</button></td>
+            </tr>
+        `).join('');
+    }
+
+    function updateStaffField(id, field, value) {
+        const person = appState.staff.find(item => item.id === id);
+        if (!person) return;
+        person[field] = value;
+        saveState();
+        renderStructureChart();
+        refreshAllPersonSelects();
+    }
+
+    function addStaffMember() {
+        const nextSort = Math.max(0, ...appState.staff.map(person => Number(person.sort || 0))) + 1;
+        const id = `staff-${Date.now()}`;
+        appState.staff.push({
+            id,
+            active: true,
+            group: 'Fn',
+            rank: 'Fn',
+            nameCh: '新成員',
+            nameEn: 'New Member',
+            category: 'other',
+            service: 'fire',
+            color: 'yellow',
+            sort: nextSort
+        });
+        saveState();
+        renderStaffEditor();
+        renderStructureChart();
+        refreshAllPersonSelects();
+    }
+
+    function addAmbStaffMember() {
+        const nextAmbSort = Math.max(1000, ...appState.staff.filter(person => ['ACAO','Supt','S/AO','PAmbm','SAmbm','Ambm'].includes(person.group)).map(person => Number(person.sort || 0))) + 1;
+        const id = `amb-staff-${Date.now()}`;
+        appState.staff.push({
+            id,
+            active: true,
+            group: 'Ambm',
+            rank: 'Ambm',
+            nameCh: 'Name Chinese',
+            nameEn: 'Name English',
+            category: 'other',
+            service: 'amb',
+            color: 'pink',
+            sort: nextAmbSort
+        });
+        saveState();
+        renderStaffEditor();
+        renderStructureChart();
+        refreshAllPersonSelects();
+    }
+
+    function deleteStaffMember(id) {
+        const person = appState.staff.find(item => item.id === id);
+        if (!person) return;
+        const confirmed = confirm(`確定刪除「${staffDisplayName(person)}」？已選用此人的編制表欄位會保留為「已移除的人員」，方便你重新選擇。`);
+        if (!confirmed) return;
+        appState.staff = appState.staff.filter(item => item.id !== id);
+        saveState();
+        renderStaffEditor();
+        renderStructureChart();
+        refreshAllPersonSelects();
+    }
+
+    function syncFromStructure() {
+        saveState();
+        renderStaffEditor();
+        renderStructureChart();
+        refreshAllPersonSelects();
+        setSyncStatus('架構表已套用：消防與救護編制表下拉資料已更新。');
+    }
+
+    function renderStructureChart() {
+        const table = document.getElementById('structure-chart');
+        table.innerHTML = FIRE_GROUPS.map(group => {
+            const members = sortStaff(appState.staff.filter(person => person.active && person.group === group.key));
+            const placeholderCount = Math.max(0, group.minSlots - members.length);
+            const cards = [
+                ...members.map(memberCard),
+                ...Array.from({ length: placeholderCount }, () => nilCard(group.key))
+            ].join('');
+            return `
+                <tr>
+                    <td class="rank-col">${escapeHtml(group.key)}</td>
+                    <td><div class="card-container">${cards}</div></td>
+                </tr>`;
+        }).join('');
+        renderAmbulanceStructureChart();
+    }
+
+    function renderAmbulanceStructureChart() {
+        const table = document.getElementById('ambulance-structure-chart');
+        if (!table) return;
+
+        table.innerHTML = AMB_GROUPS.map(group => {
+            const members = sortStaff(appState.staff.filter(person => person.active && person.group === group.key));
+            const placeholderCount = Math.max(0, group.minSlots - members.length);
+            const cards = [
+                ...members.map(member => ambulanceMemberCard(member, group.key)),
+                ...Array.from({ length: placeholderCount }, () => ambulanceNilCard(group.key))
+            ].join('');
+
+            return `
+                <tr>
+                    <td class="rank-col">${escapeHtml(group.key)}</td>
+                    <td><div class="amb-card-grid ${ambulanceGridClass(group)}">${cards}</div></td>
+                </tr>`;
+        }).join('');
+    }
+
+    function ambulanceGridClass(group) {
+        if (group.minSlots >= 8) return 'cols-8';
+        if (group.minSlots >= 5) return 'cols-5';
+        if (group.minSlots === 2) return 'cols-2';
+        return 'cols-1';
+    }
+
+    function ambulanceMemberCard(person, groupKey) {
+        const photoClass = ambulancePhotoClass(person, groupKey);
+        const infoClass = ambulanceInfoClass(groupKey);
+        return `
+            <div class="member-card">
+                <div class="avatar-box bg-${photoClass}"><div class="avatar-placeholder"></div></div>
+                <div class="card-info">
+                    <div class="info-rank ${infoClass}">${escapeHtml(person.rank || groupKey)}</div>
+                    <div class="info-name-ch">${escapeHtml(person.nameCh || 'Name Chinese')}</div>
+                    <div class="info-name-en">${escapeHtml(person.nameEn || 'Name English')}</div>
+                    <div class="mini-badge">${escapeHtml(SERVICE_LABELS[person.service] || person.service)}｜${escapeHtml((CATEGORY_LABELS[person.category] || '').split(' / ')[0])}</div>
+                </div>
+            </div>`;
+    }
+
+    function ambulanceNilCard(groupKey) {
+        const infoClass = ambulanceInfoClass(groupKey);
+        return `
+            <div class="member-card empty-card">
+                <div class="avatar-box bg-nil">Nil</div>
+                <div class="card-info">
+                    <div class="info-rank ${infoClass}">${escapeHtml(groupKey)}</div>
+                    <div class="info-name-ch">Name Chinese</div>
+                    <div class="info-name-en">Name English</div>
+                </div>
+            </div>`;
+    }
+
+    function ambulancePhotoClass(person, groupKey) {
+        if (groupKey === 'Ambm') return 'pink';
+        if (person.color === 'red') return 'red';
+        if (person.color === 'yellow') return 'yellow';
+        if (person.color === 'blue') return 'blue';
+        if (person.color === 'pink') return 'pink';
+        return 'gray';
+    }
+
+    function ambulanceInfoClass(groupKey) {
+        if (['PAmbm', 'SAmbm'].includes(groupKey)) return 'info-green';
+        if (groupKey === 'Ambm') return 'info-pink';
+        if (groupKey === 'Supt' && !groupKey.startsWith('S/')) return 'info-blue';
+        return 'info-blue';
+    }
+
+    function memberCard(person) {
+        return `
+            <div class="member-card">
+                <div class="avatar-box bg-${person.color || 'gray'}"><div class="avatar-placeholder"></div></div>
+                <div class="card-info">
+                    <div class="info-rank">${escapeHtml(person.rank)}</div>
+                    <div class="info-name-ch">${escapeHtml(person.nameCh)}</div>
+                    <div class="info-name-en">${escapeHtml(person.nameEn)}</div>
+                    <div class="mini-badge">${escapeHtml(SERVICE_LABELS[person.service] || person.service)}｜${escapeHtml((CATEGORY_LABELS[person.category] || '').split(' / ')[0])}</div>
+                </div>
+            </div>`;
+    }
+
+    function nilCard(groupKey) {
+        return `
+            <div class="member-card empty-card">
+                <div class="avatar-box bg-nil">Nil</div>
+                <div class="card-info">
+                    <div class="info-rank">${escapeHtml(groupKey)}</div>
+                    <div class="info-name-ch">Name Chinese</div>
+                    <div class="info-name-en">Name English</div>
+                </div>
+            </div>`;
+    }
+
+    function exportData() {
+        const blob = new Blob([JSON.stringify(appState, null, 2)], { type: 'application/json;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `編制管理資料_${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    }
+
+    function triggerImport() {
+        document.getElementById('import-file').click();
+    }
+
+    function importData(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                const data = JSON.parse(reader.result);
+                if (!Array.isArray(data.staff)) throw new Error('JSON 缺少 staff 陣列');
+                appState = {
+                    staff: data.staff,
+                    rosters: data.rosters || { fire: {}, amb: {} },
+                    date: data.date || document.getElementById('system-date').value || '2026-07-02'
+                };
+                document.getElementById('system-date').value = appState.date;
+                saveState();
+                initializeUI(false);
+                setSyncStatus('JSON 已匯入，架構表與兩個編制表已更新。');
+            } catch (error) {
+                alert(`匯入失敗：${error.message}`);
+            } finally {
+                event.target.value = '';
+            }
+        };
+        reader.readAsText(file, 'utf-8');
+    }
+
+    function resetAllData() {
+        const confirmed = confirm('確定重設為範例資料？目前的人員與編制表選項會被清除。');
+        if (!confirmed) return;
+        appState = {
+            staff: structuredClone(DEFAULT_STAFF),
+            rosters: { fire: {}, amb: {} },
+            date: '2026-07-02'
+        };
+        localStorage.removeItem(STORAGE_KEY);
+        initializeUI(false);
+        saveState();
+        setSyncStatus('已重設為範例資料。');
+    }
+
+    function initializeUI(firstLoad = true) {
+        document.getElementById('system-date').value = appState.date || '2026-07-02';
+        renderRosterPanel('fire');
+        renderRosterPanel('amb');
+        renderStaffEditor();
+        renderStructureChart();
+        refreshAllPersonSelects();
+        document.getElementById('system-date').onchange = function () {
+            appState.date = this.value;
+            saveState();
+        };
+        if (firstLoad) setSyncStatus('已載入：架構表資料已同步到消防與救護編制表。');
+    }
+
+    initializeUI();
+</script>
+</body>
+</html>
