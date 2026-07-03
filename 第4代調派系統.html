@@ -896,7 +896,7 @@ function manualSave() {
 
     function staffMatches(person, type, filter) {
         if (!person.active) return false;
-        if (!(person.service === 'both' || person.service === type)) return false;
+        if (!person.service === type) return false;
 
         switch (filter) {
             case 'officer': return person.category === 'officer';
@@ -1187,9 +1187,6 @@ function manualSave() {
     }
 
     function ambulanceInfoClass(groupKey) {
-        if (['PAmbm', 'SAmbm'].includes(groupKey)) return 'info-blue';
-        if (groupKey === 'Ambm') return 'info-blue';
-        if (groupKey === 'Supt' && !groupKey.startsWith('S/')) return 'info-blue';
         return 'info-blue';
     }
 
