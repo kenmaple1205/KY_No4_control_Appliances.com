@@ -1177,8 +1177,7 @@ function manualSave() {
             </div>`;
     }
 
-    function ambulancePhotoClass(person, groupKey) {
-        if (groupKey === 'Ambm') return 'pink';
+    function ambulancePhotoClass(person) {
         if (person.color === 'red') return 'red';
         if (person.color === 'yellow') return 'yellow';
         if (person.color === 'blue') return 'blue';
