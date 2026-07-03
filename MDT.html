@@ -146,6 +146,10 @@
       resize: vertical;
     }
 
+    [hidden] {
+      display: none !important;
+    }
+
     .field {
       margin-bottom: 14px;
     }
@@ -302,7 +306,7 @@
 
     .send-panel {
       display: grid;
-      grid-template-columns: 1fr auto auto;
+      grid-template-columns: 1fr auto;
       gap: 10px;
       align-items: center;
       margin-top: 18px;
@@ -386,13 +390,15 @@
         <div class="settings">
           <div class="field">
             <label for="vehicleId">車輛 / 單位名稱（可選）</label>
-            <input id="vehicleId" type="text" placeholder="例如：MP" />
+            <select id="vehicleId"></select>
+            <input id="customVehicleId" type="text" placeholder="FCC/CFS1" hidden />
+            <p class="hint">揀返你架車，無就揀自訂</p>
           </div>
 
           <div class="field">
-            <label for="messageTemplate">Discord 訊息格式</label>
-            <textarea id="messageTemplate">[{category}] {code}</textarea>
-            <p class="hint">可用變數：<code>{category}</code>、<code>{code}</code>、<code>{unit}</code>、<code>{time}</code></p>
+            <label for="messageTemplate">Discord 訊息格式（已鎖定）</label>
+            <textarea id="messageTemplate" readonly>[{unit}] [{category}] {code}</textarea>
+            <p class="hint">此欄不能在頁面更改；要改格式請在 HTML 內找 <code>CHANGE MESSAGE FORMAT HERE</code>。</p>
           </div>
         </div>
       </aside>
@@ -409,7 +415,6 @@
           <div class="send-panel">
             <div class="selected-text" id="selectedText">尚未選擇代碼</div>
             <button class="success" id="sendSelected" type="button" disabled>送出選取代碼</button>
-            <button class="primary" id="sendCategory" type="button">送出整個分類</button>
           </div>
           <div class="status" id="status"></div>
         </div>
@@ -418,6 +423,43 @@
   </main>
 
   <script>
+
+    // FiveM/GTA change: these are GTA V/FiveM vehicle model names used for the {unit} value.
+    // Add or remove entries here when your server has more vehicle model names.
+    // ===== CHANGE MESSAGE FORMAT HERE =====
+    // Edit only this line to change what gets sent to Discord.
+    // Available variables:
+    //   {unit} or {vehicle} = selected GTA/FiveM vehicle model name
+    //   {category}          = selected category, e.g. 事故
+    //   {code}              = selected dispatch code, e.g. ARF
+    //   {time}              = current local time
+    // Example: '[{vehicle}] [{category}] {code} - {time}'
+    const MESSAGE_TEMPLATE = '[{unit}] [{category}] {code}';
+    // ===== END MESSAGE FORMAT SETTINGS =====
+
+    const gtaVehicleNames = [
+      { value: '', label: '未設定 / No vehicle' },
+      { value: 'AMBULANCE', label: 'AMBULANCE / ambulance' },
+      { value: 'FIRETRUK', label: 'FIRETRUK / firetruk' },
+      { value: 'POLICE', label: 'POLICE / police' },
+      { value: 'POLICE2', label: 'POLICE2 / police2' },
+      { value: 'POLICE3', label: 'POLICE3 / police3' },
+      { value: 'POLICE4', label: 'POLICE4 / police4' },
+      { value: 'POLICEB', label: 'POLICEB / policeb' },
+      { value: 'POLICET', label: 'POLICET / policet' },
+      { value: 'SHERIFF', label: 'SHERIFF / sheriff' },
+      { value: 'SHERIFF2', label: 'SHERIFF2 / sheriff2' },
+      { value: 'FBI', label: 'FBI / fbi' },
+      { value: 'FBI2', label: 'FBI2 / fbi2' },
+      { value: 'PRANGER', label: 'PRANGER / pranger' },
+      { value: 'RIOT', label: 'RIOT / riot' },
+      { value: 'RIOT2', label: 'RIOT2 / riot2' },
+      { value: 'LGUARD', label: 'LGUARD / lguard' },
+      { value: 'PBUS', label: 'PBUS / pbus' },
+      { value: 'TAXI', label: 'TAXI / taxi' },
+      { value: 'BUS', label: 'BUS / bus' },
+      { value: '__custom', label: '自訂 / Custom model name' }
+    ];
 
     const categories = [
       {
@@ -465,8 +507,8 @@
       selectedText: document.querySelector('#selectedText'),
       status: document.querySelector('#status'),
       sendSelected: document.querySelector('#sendSelected'),
-      sendCategory: document.querySelector('#sendCategory'),
       vehicleId: document.querySelector('#vehicleId'),
+      customVehicleId: document.querySelector('#customVehicleId'),
       messageTemplate: document.querySelector('#messageTemplate'),
       clockTime: document.querySelector('#clockTime'),
       clockDate: document.querySelector('#clockDate')
@@ -477,10 +519,11 @@
 
     function init() {
       const savedUnit = localStorage.getItem('dispatchUnit');
-      const savedTemplate = localStorage.getItem('dispatchTemplate');
+      const savedCustomUnit = localStorage.getItem('dispatchCustomUnit');
 
-      if (savedUnit) elements.vehicleId.value = savedUnit;
-      if (savedTemplate) elements.messageTemplate.value = savedTemplate;
+      localStorage.removeItem('dispatchTemplate');
+      renderVehicleOptions(savedUnit, savedCustomUnit);
+      elements.messageTemplate.value = MESSAGE_TEMPLATE;
 
       renderTabs();
       renderCodes();
@@ -495,14 +538,63 @@
         sendCode(getActiveCategory(), selectedCode);
       });
 
-      elements.sendCategory.addEventListener('click', () => {
-        const category = getActiveCategory();
-        const message = category.codes.map(code => buildMessage(category.name, code)).join('\n');
-        sendDiscord(message);
+      elements.vehicleId.addEventListener('change', () => {
+        updateCustomVehicleVisibility();
+        saveSettings();
+      });
+      elements.customVehicleId.addEventListener('input', saveSettings);
+
+      // FiveM/GTA change: a FiveM client.lua can auto-fill the current vehicle with:
+      // SendNUIMessage({ type = 'setVehicleName', vehicleName = GetDisplayNameFromVehicleModel(GetEntityModel(vehicle)) })
+      window.addEventListener('message', event => {
+        const data = event.data || {};
+        const vehicleName = data.vehicleName || data.vehicle || data.model || data.name;
+        if ((data.type === 'setVehicleName' || data.action === 'setVehicleName' || data.type === 'vehicle') && vehicleName) {
+          setVehicleName(vehicleName);
+        }
+      });
+    }
+
+    function renderVehicleOptions(savedUnit, savedCustomUnit) {
+      elements.vehicleId.innerHTML = '';
+      gtaVehicleNames.forEach(vehicle => {
+        const option = document.createElement('option');
+        option.value = vehicle.value;
+        option.textContent = vehicle.label;
+        elements.vehicleId.appendChild(option);
       });
 
-      elements.vehicleId.addEventListener('input', saveSettings);
-      elements.messageTemplate.addEventListener('input', saveSettings);
+      if (savedUnit && gtaVehicleNames.some(vehicle => vehicle.value === savedUnit)) {
+        elements.vehicleId.value = savedUnit;
+      } else if (savedUnit) {
+        elements.vehicleId.value = '__custom';
+        elements.customVehicleId.value = savedCustomUnit || savedUnit;
+      }
+
+      updateCustomVehicleVisibility();
+    }
+
+    function updateCustomVehicleVisibility() {
+      elements.customVehicleId.hidden = elements.vehicleId.value !== '__custom';
+    }
+
+    function getVehicleName() {
+      return elements.vehicleId.value === '__custom'
+        ? elements.customVehicleId.value.trim().toUpperCase()
+        : elements.vehicleId.value;
+    }
+
+    function setVehicleName(vehicleName) {
+      const normalized = String(vehicleName).trim().toUpperCase();
+      if (gtaVehicleNames.some(vehicle => vehicle.value === normalized)) {
+        elements.vehicleId.value = normalized;
+        elements.customVehicleId.value = '';
+      } else {
+        elements.vehicleId.value = '__custom';
+        elements.customVehicleId.value = normalized;
+      }
+      updateCustomVehicleVisibility();
+      saveSettings();
     }
 
     function renderTabs() {
@@ -557,14 +649,18 @@
     function buildMessage(categoryName, code) {
       const now = new Date();
       const time = now.toLocaleString('zh-HK', { hour12: false });
-      const unit = elements.vehicleId.value.trim();
-      const template = elements.messageTemplate.value.trim() || '[{category}] {code}';
+      const unit = getVehicleName();
 
-      return template
+      // FiveM/GTA change: {unit} and {vehicle} both resolve to the selected GTA vehicle model name.
+      return MESSAGE_TEMPLATE
         .replaceAll('{category}', categoryName)
         .replaceAll('{code}', code)
         .replaceAll('{unit}', unit)
-        .replaceAll('{time}', time);
+        .replaceAll('{vehicle}', unit)
+        .replaceAll('{time}', time)
+        .replace(/\[\s*\]/g, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
     }
 
     function sendCode(category, code) {
@@ -581,7 +677,6 @@
 
       setStatus('正在送出...');
       elements.sendSelected.disabled = true;
-      elements.sendCategory.disabled = true;
 
       try {
         const response = await fetch(webhookUrl, {
@@ -603,13 +698,12 @@
         setStatus(`送出失敗：${error.message}`, true);
       } finally {
         elements.sendSelected.disabled = !selectedCode;
-        elements.sendCategory.disabled = false;
       }
     }
 
     function saveSettings() {
-      localStorage.setItem('dispatchUnit', elements.vehicleId.value.trim());
-      localStorage.setItem('dispatchTemplate', elements.messageTemplate.value);
+      localStorage.setItem('dispatchUnit', getVehicleName());
+      localStorage.setItem('dispatchCustomUnit', elements.customVehicleId.value.trim().toUpperCase());
     }
 
     function setStatus(message, isError = false, isOk = false) {
