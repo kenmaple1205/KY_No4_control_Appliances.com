@@ -15,6 +15,8 @@
             --fire-light: #fce4d6;
             --amb: #003366;
             --amb-light: #cfdff7;
+            --marine: #006699;
+            --marine-light: #e6f2ff;
             --struct: #383d41;
             --struct-light: #e2e3e5;
             --success: #198754;
@@ -113,6 +115,8 @@
         .tab-btn.fire-tab.active { background-color: var(--fire); color: #fff; }
         .tab-btn.amb-tab { background-color: var(--amb-light); color: #1e3d59; }
         .tab-btn.amb-tab.active { background-color: var(--amb); color: #fff; }
+        .tab-btn.marine-tab { background-color: var(--marine-light); color: var(--marine); }
+        .tab-btn.marine-tab.active { background-color: var(--marine); color: #fff; }
         .tab-btn.struct-tab { background-color: var(--struct-light); color: var(--struct); }
         .tab-btn.struct-tab.active { background-color: var(--struct); color: #fff; }
 
@@ -146,38 +150,23 @@
         }
 
         .fire-panel table.data-table th, .fire-panel table.data-table td { border: 1px solid #a0a0a0; }
-        .fire-main-header {
-            background-color: var(--fire-light);
-            color: var(--fire);
-            font-weight: 900;
-            font-size: 16px;
-        }
-        .fire-right-header {
-            background-color: var(--fire);
-            color: #fff;
-            font-weight: 900;
-            font-size: 16px;
-        }
+        .fire-main-header { background-color: var(--fire-light); color: var(--fire); font-weight: 900; font-size: 16px; }
+        .fire-right-header { background-color: var(--fire); color: #fff; font-weight: 900; font-size: 16px; }
         .fire-total-bg { background-color: var(--fire-light); font-weight: 900; }
         .fire-spacer-row { background-color: var(--fire-light); height: 15px; }
 
         .amb-panel table.data-table th, .amb-panel table.data-table td { border: 1px solid #a6b9d0; }
-        .amb-main-header {
-            background-color: var(--amb-light);
-            color: #1e3d59;
-            font-weight: 900;
-            font-size: 16px;
-            letter-spacing: 1px;
-        }
-        .amb-right-header {
-            background-color: var(--amb);
-            color: #fff;
-            font-weight: 900;
-            font-size: 16px;
-            letter-spacing: 1px;
-        }
+        .amb-main-header { background-color: var(--amb-light); color: #1e3d59; font-weight: 900; font-size: 16px; letter-spacing: 1px; }
+        .amb-right-header { background-color: var(--amb); color: #fff; font-weight: 900; font-size: 16px; letter-spacing: 1px; }
         .amb-total-bg { background-color: #8faadc; color: #000; font-weight: 900; }
         .amb-spacer-row { background-color: var(--amb-light); height: 16px; }
+
+        /* 海務專屬樣式 */
+        .marine-panel table.data-table th, .marine-panel table.data-table td { border: 1px solid #99c2ff; }
+        .marine-main-header { background-color: var(--marine-light); color: var(--marine); font-weight: 900; font-size: 16px; letter-spacing: 1px; }
+        .marine-right-header { background-color: var(--marine); color: #fff; font-weight: 900; font-size: 16px; letter-spacing: 1px; }
+        .marine-total-bg { background-color: #b3d9ff; color: #000; font-weight: 900; }
+        .marine-spacer-row { background-color: var(--marine-light); height: 16px; }
 
         select, input[type="text"], input[type="number"], input[type="date"], textarea {
             width: 95%;
@@ -439,7 +428,6 @@
             line-height: 1.6;
         }
 
-
         .struct-subtitle {
             margin: 28px 0 12px;
             padding: 10px 14px;
@@ -457,22 +445,7 @@
             align-items: start;
         }
 
-        .amb-card-grid.cols-1 {
-            flex-wrap: warp;
-            justify-content: center;
-        }
-
-        .amb-card-grid.cols-2 {
-            flex-wrap: warp;
-            justify-content: center;
-        }
-
-        .amb-card-grid.cols-5 {
-            flex-wrap: warp;
-            justify-content: center;
-        }
-
-        .amb-card-grid.cols-8 {
+        .amb-card-grid.cols-1, .amb-card-grid.cols-2, .amb-card-grid.cols-5, .amb-card-grid.cols-8 {
             flex-wrap: warp;
             justify-content: center;
         }
@@ -486,6 +459,7 @@
         .member-card .info-rank.info-green { background-color: #d9ead3; }
         .member-card .info-rank.info-pink { background-color: #e99598; }
         .member-card .info-rank.info-gray { background-color: #eaeaea; }
+
         @media (max-width: 1050px) {
             body { margin: 12px; }
             .top-bar, .tab-content.active { flex-direction: column; align-items: stretch; }
@@ -500,7 +474,7 @@
     <div class="top-bar">
         <div>
             <div class="system-title">消防及救護人員編制管理系統</div>
-            <div class="sync-status" id="sync-status">架構表已連接：消防與救護編制表會同步使用同一份人員資料。</div>
+            <div class="sync-status" id="sync-status">架構表已連接：所有編制表會同步使用同一份人員資料。</div>
         </div>
         <table class="date-picker-table">
             <tr>
@@ -513,21 +487,24 @@
     <div class="tab-buttons">
         <button class="tab-btn fire-tab active" onclick="switchTab('fire')">🚒 消防車輛編制</button>
         <button class="tab-btn amb-tab" onclick="switchTab('amb')">🚑 救護車輛編制</button>
+        <button class="tab-btn marine-tab" onclick="switchTab('marine')">🛥️ 海務船隻編制</button>
         <button class="tab-btn struct-tab" onclick="switchTab('struct')">📊 人員架構表</button>
         <button class="tool-btn success" onclick="addStaffMember()">＋ 新增消防人員</button>
         <button class="tool-btn success" onclick="addAmbStaffMember()">＋ 新增救護人員</button>
+        <button class="tool-btn success" onclick="addMarineStaffMember()">＋ 新增海務人員</button>
         <button class="tool-btn primary" onclick="manualSave()">💾 手動存檔</button> 
-        <button class="tool-btn primary" onclick="syncFromStructure()">套用架構表到兩個編制表</button>
+        <button class="tool-btn primary" onclick="syncFromStructure()">套用架構表</button>
     </div>
 
     <div id="fire-panel" class="tab-content fire-panel active"></div>
     <div id="amb-panel" class="tab-content amb-panel"></div>
+    <div id="marine-panel" class="tab-content marine-panel"></div>
 
     <div id="struct-panel" class="tab-content">
         <div class="struct-panel">
             <div class="struct-title">人員架構表 / Personnel Structure</div>
             <div class="screen-note">
-                在下方「架構資料表」修改人員職級、姓名、分類或適用編制後，消防與救護兩個編制表的下拉選單會即時同步更新。<br>
+                在下方「架構資料表」修改人員職級、姓名、分類或適用編制後，所有編制表的下拉選單會即時同步更新。<br>
                 分類會影響可選位置：官員 → 指揮官/主任；隊目/總隊目 → 總隊目/隊目；司機/隊員 → 司機與隊員欄位。
             </div>
 
@@ -535,9 +512,11 @@
                 <div class="toolbar-left">
                     <button class="tool-btn success" onclick="addStaffMember()">＋ 新增消防人員</button>
                     <button class="tool-btn success" onclick="addAmbStaffMember()">＋ 新增救護人員</button>
-                    <button class="tool-btn primary" onclick="syncFromStructure()">套用架構表到兩個編制表</button>
+                    <button class="tool-btn success" onclick="addMarineStaffMember()">＋ 新增海務人員</button>
+                    <button class="tool-btn primary" onclick="syncFromStructure()">套用架構表</button>
                     <button class="tool-btn" onclick="switchTab('fire')">查看消防編制</button>
                     <button class="tool-btn" onclick="switchTab('amb')">查看救護編制</button>
+                    <button class="tool-btn" onclick="switchTab('marine')">查看海務編制</button>
                 </div>
                 <div class="toolbar-right">
                     <button class="tool-btn" onclick="exportData()">匯出 JSON</button>
@@ -602,7 +581,11 @@
         { id: 'amb-ambm-001', active: true, group: 'Ambm', rank: 'Ambm26003', nameCh: '郭嘉泳', nameEn: 'KWOK Ka-wing', category: 'other', service: 'amb', color: 'pink', sort: 1060 },
         { id: 'amb-ambm-002', active: true, group: 'Ambm', rank: 'Ambm26008', nameCh: '王名', nameEn: 'WONG Ming', category: 'other', service: 'amb', color: 'pink', sort: 1061 },
         { id: 'amb-ambm-003', active: true, group: 'Ambm', rank: 'Ambm26016', nameCh: '周楓章', nameEn: 'CHOU Feng-chang', category: 'other', service: 'amb', color: 'pink', sort: 1062 },
-        { id: 'amb-ambm-004', active: true, group: 'Ambm', rank: 'Ambm26018', nameCh: '薛迪', nameEn: 'Name English', category: 'other', service: 'amb', color: 'pink', sort: 1063 }
+        { id: 'amb-ambm-004', active: true, group: 'Ambm', rank: 'Ambm26018', nameCh: '薛迪', nameEn: 'Name English', category: 'other', service: 'amb', color: 'pink', sort: 1063 },
+        
+        // 預設海務人員
+        { id: 'mar-officer-001', active: true, group: 'Fn', rank: 'StnO', nameCh: '海務長', nameEn: 'Marine Officer', category: 'officer', service: 'marine', color: 'red', sort: 2010 },
+        { id: 'mar-crew-001', active: true, group: 'Fn', rank: 'Fn12345', nameCh: '船員甲', nameEn: 'Crew A', category: 'other', service: 'marine', color: 'yellow', sort: 2020 }
     ];
 
     const FIRE_GROUPS = [
@@ -634,7 +617,8 @@
 
     const SERVICE_LABELS = {
         fire: '消防 Fire',
-        amb: '救護 Amb'
+        amb: '救護 Amb',
+        marine: '海務 Marine'
     };
 
     const COLOR_LABELS = {
@@ -667,6 +651,17 @@
             commanderLabel: '當值指揮官',
             officerCol: '救護主任',
             vehicles: ['A223', 'RRV', 'MCTC', 'NIL', 'NIL', 'NIL']
+        },
+        marine: {
+            emoji: '🛥️',
+            mainHeader: '海務船隻編制 Marine Vessels & Resources',
+            mainHeaderClass: 'marine-main-header',
+            rightHeaderClass: 'marine-right-header',
+            totalClass: 'marine-total-bg',
+            spacerClass: 'marine-spacer-row',
+            commanderLabel: '當值指揮官',
+            officerCol: '海務隊長',
+            vehicles: ['滅火輪 1', '滅火輪 2', '快艇 1', '快艇 2', '救援船', 'NIL']
         }
     };
 
@@ -678,7 +673,7 @@
             if (saved && Array.isArray(saved.staff)) {
                 return {
                     staff: saved.staff,
-                    rosters: saved.rosters || { fire: {}, amb: {} },
+                    rosters: saved.rosters || { fire: {}, amb: {}, marine: {} },
                     date: saved.date || '2026-07-02'
                 };
             }
@@ -687,14 +682,14 @@
         }
         return {
             staff: structuredClone(DEFAULT_STAFF),
-            rosters: { fire: {}, amb: {} },
+            rosters: { fire: {}, amb: {}, marine: {} },
             date: '2026-07-02'
         };
     }
 
     function saveState() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
-        setSyncStatus('已儲存並同步到消防／救護編制表。');
+        setSyncStatus('已儲存並同步到各部門編制表。');
     }
 
     function setSyncStatus(message) {
@@ -703,7 +698,7 @@
         el.textContent = message;
         clearTimeout(setSyncStatus.timer);
         setSyncStatus.timer = setTimeout(() => {
-            el.textContent = '架構表已連接：消防與救護編制表會同步使用同一份人員資料。';
+            el.textContent = '架構表已連接：所有編制表會同步使用同一份人員資料。';
         }, 2600);
     }
 
@@ -715,26 +710,25 @@
             .replaceAll('"', '&quot;')
             .replaceAll("'", '&#039;');
     }
-function manualSave() {
-    // 執行儲存狀態
-    saveState();
     
-    // 給予使用者視覺回饋
-    setSyncStatus('已完成手動存檔！');
-    
-    // 若你想在瀏覽器頂部跳出提示，可選擇開啟下方 alert (若覺得干擾可註解掉)
-    // alert('系統資料已儲存完畢。');
+    function manualSave() {
+        saveState();
+        setSyncStatus('已完成手動存檔！');
     }
     
     function switchTab(type) {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        
         if (type === 'fire') {
             document.querySelector('.tab-btn.fire-tab').classList.add('active');
             document.getElementById('fire-panel').classList.add('active');
         } else if (type === 'amb') {
             document.querySelector('.tab-btn.amb-tab').classList.add('active');
             document.getElementById('amb-panel').classList.add('active');
+        } else if (type === 'marine') {
+            document.querySelector('.tab-btn.marine-tab').classList.add('active');
+            document.getElementById('marine-panel').classList.add('active');
         } else {
             document.querySelector('.tab-btn.struct-tab').classList.add('active');
             document.getElementById('struct-panel').classList.add('active');
@@ -766,7 +760,8 @@ function manualSave() {
     }
 
     function getRosterValue(type, key) {
-        return (appState.rosters[type] && appState.rosters[type][key]) || '';
+        if (!appState.rosters[type]) appState.rosters[type] = {};
+        return appState.rosters[type][key] || '';
     }
 
     function renderRosterPanel(type) {
@@ -795,10 +790,10 @@ function manualSave() {
                         <td colspan="6">${personSelect(type, 'commander', 'officer', 'duty', '-- 請選擇指揮官 --')}</td>
                     </tr>
                     <tr class="sub-header">
-                        <td style="width: 12%;">車輛</td>
+                        <td style="width: 12%;">${type === 'marine' ? '船隻' : '車輛'}</td>
                         <td style="width: 14%;">${cfg.officerCol}</td>
                         <td style="width: 14%;">總隊目/隊目</td>
-                        <td style="width: 12%;">司機</td>
+                        <td style="width: 12%;">司機/操舵員</td>
                         <td colspan="2" style="width: 36%;">隊員</td>
                         <td style="width: 12%;">狀態</td>
                     </tr>
@@ -842,7 +837,7 @@ function manualSave() {
                 <table class="data-table">
                     <tr><td colspan="3" class="${cfg.rightHeaderClass}">其他資訊 OTHER INFORMATION</td></tr>
                     <tr>
-                        <td rowspan="3" class="sub-header" style="width: 35%;">定檢車輛<br><small>Scheduled Inspection</small></td>
+                        <td rowspan="3" class="sub-header" style="width: 35%;">定檢項目<br><small>Scheduled Inspection</small></td>
                         <td colspan="2">${textInput(type, 'inspection-1', '-')}</td>
                     </tr>
                     <tr><td colspan="2">${textInput(type, 'inspection-2', '-')}</td></tr>
@@ -896,7 +891,7 @@ function manualSave() {
 
     function staffMatches(person, type, filter) {
         if (!person.active) return false;
-        if (!person.service === type) return false;
+        if (person.service !== type) return false;
 
         switch (filter) {
             case 'officer': return person.category === 'officer';
@@ -939,6 +934,7 @@ function manualSave() {
         document.querySelectorAll('select[data-person-select="1"]').forEach(populatePersonSelect);
         updateRosterTotals('fire');
         updateRosterTotals('amb');
+        updateRosterTotals('marine');
     }
 
     function uniqueSelectedPeople(type, countArea) {
@@ -1084,6 +1080,27 @@ function manualSave() {
         refreshAllPersonSelects();
     }
 
+    function addMarineStaffMember() {
+        const nextMarSort = Math.max(2000, ...appState.staff.filter(person => person.service === 'marine').map(person => Number(person.sort || 0))) + 1;
+        const id = `mar-staff-${Date.now()}`;
+        appState.staff.push({
+            id,
+            active: true,
+            group: 'Fn', 
+            rank: 'Fn',
+            nameCh: '新船員',
+            nameEn: 'New Crew',
+            category: 'other',
+            service: 'marine',
+            color: 'yellow',
+            sort: nextMarSort
+        });
+        saveState();
+        renderStaffEditor();
+        renderStructureChart();
+        refreshAllPersonSelects();
+    }
+
     function deleteStaffMember(id) {
         const person = appState.staff.find(item => item.id === id);
         if (!person) return;
@@ -1101,7 +1118,7 @@ function manualSave() {
         renderStaffEditor();
         renderStructureChart();
         refreshAllPersonSelects();
-        setSyncStatus('架構表已套用：消防與救護編制表下拉資料已更新。');
+        setSyncStatus('架構表已套用：各部門編制表下拉資料已更新。');
     }
 
     function renderStructureChart() {
@@ -1239,15 +1256,19 @@ function manualSave() {
             try {
                 const data = JSON.parse(reader.result);
                 if (!Array.isArray(data.staff)) throw new Error('JSON 缺少 staff 陣列');
+                
+                // 確保舊版本資料也能初始化 marine roster
                 appState = {
                     staff: data.staff,
-                    rosters: data.rosters || { fire: {}, amb: {} },
+                    rosters: data.rosters || { fire: {}, amb: {}, marine: {} },
                     date: data.date || document.getElementById('system-date').value || '2026-07-02'
                 };
+                if(!appState.rosters.marine) appState.rosters.marine = {};
+
                 document.getElementById('system-date').value = appState.date;
                 saveState();
                 initializeUI(false);
-                setSyncStatus('JSON 已匯入，架構表與兩個編制表已更新。');
+                setSyncStatus('JSON 已匯入，架構表與各部門編制表已更新。');
             } catch (error) {
                 alert(`匯入失敗：${error.message}`);
             } finally {
@@ -1262,7 +1283,7 @@ function manualSave() {
         if (!confirmed) return;
         appState = {
             staff: structuredClone(DEFAULT_STAFF),
-            rosters: { fire: {}, amb: {} },
+            rosters: { fire: {}, amb: {}, marine: {} },
             date: '2026-07-02'
         };
         localStorage.removeItem(STORAGE_KEY);
@@ -1275,6 +1296,7 @@ function manualSave() {
         document.getElementById('system-date').value = appState.date || '2026-07-02';
         renderRosterPanel('fire');
         renderRosterPanel('amb');
+        renderRosterPanel('marine'); // 渲染海務面板
         renderStaffEditor();
         renderStructureChart();
         refreshAllPersonSelects();
@@ -1282,7 +1304,7 @@ function manualSave() {
             appState.date = this.value;
             saveState();
         };
-        if (firstLoad) setSyncStatus('已載入：架構表資料已同步到消防與救護編制表。');
+        if (firstLoad) setSyncStatus('已載入：架構表資料已同步到所有編制表。');
     }
 
     initializeUI();
