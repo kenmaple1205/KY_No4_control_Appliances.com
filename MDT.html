@@ -21,6 +21,7 @@
       --blue: #2563eb;
       --blue-dark: #1d4ed8;
       --shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+      --yellow: #fbbf24;
     }
 
     * {
@@ -36,6 +37,28 @@
         var(--bg);
       color: var(--text);
       font-family: Arial, "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    }
+    /* 走馬燈樣式 */
+    .marquee-container {
+      background: rgba(17, 24, 39, 0.95);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 16px;
+      margin-bottom: 18px;
+      overflow: hidden;
+      white-space: nowrap;
+      color: var(--yellow);
+      font-weight: bold;
+      box-shadow: var(--shadow);
+    }
+    .marquee-text {
+      display: inline-block;
+      padding-left: 100%;
+      animation: marquee 15s linear infinite;
+    }
+    @keyframes marquee {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(-100%, 0); }
     }
 
     main {
@@ -161,17 +184,6 @@
       line-height: 1.45;
     }
 
-    .row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .row input[type="checkbox"] {
-      width: auto;
-      accent-color: #22c55e;
-    }
-
     .checkbox-label {
       display: flex;
       gap: 9px;
@@ -214,14 +226,6 @@
 
     .primary:hover {
       background: var(--blue-dark);
-    }
-
-    .danger {
-      background: var(--red);
-    }
-
-    .danger:hover {
-      background: var(--red-dark);
     }
 
     .success {
@@ -384,10 +388,21 @@
       </div>
     </header>
 
+    <!-- 走馬燈欄位 -->
+    <div class="marquee-container" id="marqueeBar">
+      <div class="marquee-text" id="marqueeContent">歡迎使用 MDT 系統，目前無緊急公告。</div>
+    </div>
+
     <section class="layout">
       <aside class="card">
         <h2>Discord 設定</h2>
         <div class="settings">
+          <!-- 新增走馬燈控制 -->
+          <div class="field">
+            <label for="marqueeInput">走馬燈公告</label>
+            <input type="text" id="marqueeInput" placeholder="輸入要公告的訊息..." />
+            <button class="primary" style="margin-top: 8px; width: 100%;" id="btnUpdateMarquee">更新走馬燈</button>
+          </div>
           <div class="field">
             <label for="vehicleId">車輛 / 單位名稱（可選）</label>
             <select id="vehicleId"></select>
@@ -396,9 +411,9 @@
           </div>
 
           <div class="field">
-            <label for="messageTemplate">Discord 訊息格式（已鎖定）</label>
-            <textarea id="messageTemplate" readonly>[{unit}] [{category}] {code}</textarea>
-            <p class="hint">此欄不能在頁面更改；要改格式請在 HTML 內找 <code>CHANGE MESSAGE FORMAT HERE</code>。</p>
+            <label for="messageTemplate">Discord 訊息格式</label>
+            <textarea id="messageTemplate">[{unit}] [{category}] {code}</textarea>
+            <p class="hint">可用變數：<code>{category}</code>、<code>{code}</code>、<code>{unit}</code>/<code>{vehicle}</code>、<code>{time}</code></p>
           </div>
         </div>
       </aside>
@@ -424,40 +439,44 @@
 
   <script>
 
-    // FiveM/GTA change: these are GTA V/FiveM vehicle model names used for the {unit} value.
-    // Add or remove entries here when your server has more vehicle model names.
-    // ===== CHANGE MESSAGE FORMAT HERE =====
-    // Edit only this line to change what gets sent to Discord.
-    // Available variables:
-    //   {unit} or {vehicle} = selected GTA/FiveM vehicle model name
-    //   {category}          = selected category, e.g. 事故
-    //   {code}              = selected dispatch code, e.g. ARF
-    //   {time}              = current local time
-    // Example: '[{vehicle}] [{category}] {code} - {time}'
-    const MESSAGE_TEMPLATE = '[{unit}] [{category}] {code}';
-    // ===== END MESSAGE FORMAT SETTINGS =====
-
+    // Fivem Car Name
+    // Add or remove entries here when your server has more vehicle names.
     const gtaVehicleNames = [
+    // 
       { value: '', label: '未設定 / No vehicle' },
-      { value: 'AMBULANCE', label: 'AMBULANCE / ambulance' },
-      { value: 'FIRETRUK', label: 'FIRETRUK / firetruk' },
-      { value: 'POLICE', label: 'POLICE / police' },
-      { value: 'POLICE2', label: 'POLICE2 / police2' },
-      { value: 'POLICE3', label: 'POLICE3 / police3' },
-      { value: 'POLICE4', label: 'POLICE4 / police4' },
-      { value: 'POLICEB', label: 'POLICEB / policeb' },
-      { value: 'POLICET', label: 'POLICET / policet' },
-      { value: 'SHERIFF', label: 'SHERIFF / sheriff' },
-      { value: 'SHERIFF2', label: 'SHERIFF2 / sheriff2' },
-      { value: 'FBI', label: 'FBI / fbi' },
-      { value: 'FBI2', label: 'FBI2 / fbi2' },
-      { value: 'PRANGER', label: 'PRANGER / pranger' },
-      { value: 'RIOT', label: 'RIOT / riot' },
-      { value: 'RIOT2', label: 'RIOT2 / riot2' },
-      { value: 'LGUARD', label: 'LGUARD / lguard' },
-      { value: 'PBUS', label: 'PBUS / pbus' },
-      { value: 'TAXI', label: 'TAXI / taxi' },
-      { value: 'BUS', label: 'BUS / bus' },
+      // 消防車
+      { value: "啟德升降台 (F 2371)", label: "KaT_HP" },
+      { value: "啟德泵車 (F 2601)", label: "KaT_MP" },
+      { value: "大埔升降台 (F 2308)", label: "TP_HP" },
+      { value: "屯門39米鋼梯 (F 5811)", label: "TM_39TL" },
+      { value: "啟德大搶(F 2711)", label: "KaT_MRU" },
+      { value: "前線指揮車(F 9214)", label: "FCC" },
+      { value: "觀塘56米鋼梯車 (F 6055)", label: "KT_56TL" },
+      // 26年救護車
+      { value: "救護車 (A600)", label: "A600" },
+      { value: "救護車 (A601)", label: "A601" },
+      { value: "救護車 (A602)", label: "A602" },
+      { value: "SSU救護車 (A653)", label: "SSU_A653" },
+      { value: "OCRT救護車 (A680)", label: "OCRT_A680"},
+      // 24年救護車
+      { value: "救護車 (A272)", label: "A272" },
+      { value: "救護車 (A320)", label: "A320" },
+      { value: "救護車 (A75)",  label: "A75"  },
+      { value: "轉院救護車 (A78)",  label: "HT_A78"  },
+      // 19年救護車
+      { value: "救護車 (A571)", label: "A571" },
+      { value: "救護車 (A572)", label: "A572" },
+      { value: "救護車 (A521)", label: "A521" },
+      { value: "SSU救護車 (A468)", label: "SSU_A468" },
+      { value: "SSU救護車 (A221)", label: "SSU_A221" },
+      // RRV
+      { value: "快速應變急救車 (A 716)", label: "A716" },
+      // 其他
+      { value: "流動傷者治療車 (A 802)", label: "MCTC_A802" },
+      { value: "救護裝備車 (A 810)", label: "PET_A810" },
+      { value: "急救醫療電單車 (A 900)", label: "EMAMC" },
+      { value: "快速應變救護電單車 (A 947)", label: "RRMC" },
+      //custom
       { value: '__custom', label: '自訂 / Custom model name' }
     ];
 
@@ -511,7 +530,11 @@
       customVehicleId: document.querySelector('#customVehicleId'),
       messageTemplate: document.querySelector('#messageTemplate'),
       clockTime: document.querySelector('#clockTime'),
-      clockDate: document.querySelector('#clockDate')
+      clockDate: document.querySelector('#clockDate'),
+      // 新增選取器
+      marqueeInput: document.querySelector('#marqueeInput'),
+      marqueeContent: document.querySelector('#marqueeContent'),
+      btnUpdateMarquee: document.querySelector('#btnUpdateMarquee')
     };
 
     let activeCategoryIndex = 0;
@@ -520,10 +543,15 @@
     function init() {
       const savedUnit = localStorage.getItem('dispatchUnit');
       const savedCustomUnit = localStorage.getItem('dispatchCustomUnit');
+      const savedTemplate = localStorage.getItem('dispatchTemplate');
+      const savedMarquee = localStorage.getItem('dispatchMarquee') || '歡迎使用 MDT 系統，目前無緊急公告。';
 
+      elements.marqueeContent.textContent = savedMarquee;
+      elements.marqueeInput.value = savedMarquee;
       localStorage.removeItem('dispatchTemplate');
+
       renderVehicleOptions(savedUnit, savedCustomUnit);
-      elements.messageTemplate.value = MESSAGE_TEMPLATE;
+      if (savedTemplate && savedTemplate !== '[{category}] {code}') elements.messageTemplate.value = savedTemplate;
 
       renderTabs();
       renderCodes();
@@ -533,6 +561,16 @@
     }
 
     function bindEvents() {
+      // 走馬燈更新事件
+      elements.btnUpdateMarquee.addEventListener('click', () => {
+        const text = elements.marqueeInput.value.trim();
+        if (text) {
+          elements.marqueeContent.textContent = text;
+          localStorage.setItem('dispatchMarquee', text);
+          setStatus('走馬燈已更新', false, true);
+        }
+      });
+
       elements.sendSelected.addEventListener('click', () => {
         if (!selectedCode) return;
         sendCode(getActiveCategory(), selectedCode);
@@ -543,6 +581,7 @@
         saveSettings();
       });
       elements.customVehicleId.addEventListener('input', saveSettings);
+      elements.messageTemplate.addEventListener('input', saveSettings);
 
       // FiveM/GTA change: a FiveM client.lua can auto-fill the current vehicle with:
       // SendNUIMessage({ type = 'setVehicleName', vehicleName = GetDisplayNameFromVehicleModel(GetEntityModel(vehicle)) })
@@ -650,9 +689,10 @@
       const now = new Date();
       const time = now.toLocaleString('zh-HK', { hour12: false });
       const unit = getVehicleName();
+      const template = elements.messageTemplate.value.trim() || '[{unit}] [{category}] {code}';
 
       // FiveM/GTA change: {unit} and {vehicle} both resolve to the selected GTA vehicle model name.
-      return MESSAGE_TEMPLATE
+      return template
         .replaceAll('{category}', categoryName)
         .replaceAll('{code}', code)
         .replaceAll('{unit}', unit)
@@ -704,6 +744,7 @@
     function saveSettings() {
       localStorage.setItem('dispatchUnit', getVehicleName());
       localStorage.setItem('dispatchCustomUnit', elements.customVehicleId.value.trim().toUpperCase());
+      localStorage.setItem('dispatchTemplate', elements.messageTemplate.value);
     }
 
     function setStatus(message, isError = false, isOk = false) {
